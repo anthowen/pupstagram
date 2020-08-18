@@ -1,17 +1,41 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
-import * as serviceWorker from './serviceWorker';
+import React from "react";
+import { AppRegistry, View } from "react-native-web";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
-ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById('root')
+import ApolloClient, { InMemoryCache } from "apollo-boost";
+import { ApolloProvider } from "@apollo/react-hooks";
+
+import { Feed } from "./views/Feed";
+import { Detail } from "./views/Detail";
+import { Likes } from "./views/Likes";
+import { defaults, resolvers } from "./gpl/resolvers";
+import { typeDefs } from "./gpl/schema";
+
+const cache = new InMemoryCache();
+const client = new ApolloClient({
+  uri: "https://dog-graphql-api.glitch.me/graphql",
+  cache,
+  resolvers,
+  typeDefs,
+});
+
+cache.writeData({
+  data: defaults,
+});
+
+const App = () => (
+  <ApolloProvider client={client}>
+    <Router>
+      <View>
+        <Switch>
+          <Route path="/" exact component={Feed} />
+          <Route path="/likes" exact component={Likes} />
+          <Route path="/:breed/:id" component={Detail} />
+        </Switch>
+      </View>
+    </Router>
+  </ApolloProvider>
 );
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister();
+AppRegistry.registerComponent("App", () => App);
+AppRegistry.runApplication("App", { rootTag: document.getElementById("root") });
